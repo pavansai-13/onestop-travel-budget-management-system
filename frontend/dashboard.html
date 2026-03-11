@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Dashboard | Onestop</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+<script>
+if (!localStorage.getItem("token")) {
+  window.location.replace("login.html");
+}
+</script>
+
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:"Poppins",sans-serif;}
+body{background:linear-gradient(135deg,#1e293b,#2563eb);min-height:100vh;color:white;}
+
+.navbar{
+display:flex;justify-content:space-between;align-items:center;
+padding:18px 40px;background:rgba(255,255,255,0.08);
+backdrop-filter:blur(12px);box-shadow:0 5px 20px rgba(0,0,0,0.2);
+}
+
+.logo{font-size:22px;font-weight:600;letter-spacing:1px;}
+.nav-actions{display:flex;gap:12px;}
+
+.btn,.logout-btn{
+padding:9px 16px;border:none;border-radius:10px;
+cursor:pointer;font-weight:500;transition:0.3s;
+}
+
+.btn{background:#f59e0b;color:white;text-decoration:none;}
+.btn:hover{background:#d97706;transform:translateY(-2px);}
+.logout-btn{background:#ef4444;color:white;}
+.logout-btn:hover{background:#dc2626;}
+
+.container{padding:30px 40px;}
+
+.summary{margin-bottom:30px;}
+.summary-card{
+background:rgba(255,255,255,0.1);
+backdrop-filter:blur(12px);
+padding:25px;border-radius:18px;width:200px;text-align:center;
+box-shadow:0 10px 25px rgba(0,0,0,0.25);
+}
+
+.summary-card h3{font-size:30px;margin-bottom:5px;}
+
+.trip-list{
+display:grid;
+grid-template-columns:repeat(auto-fill,minmax(260px,1fr));
+gap:20px;margin-top:20px;
+}
+
+.trip-card{
+background:rgba(255,255,255,0.12);
+padding:20px;border-radius:18px;
+box-shadow:0 10px 25px rgba(0,0,0,0.25);
+transition:0.3s;
+}
+
+.trip-card:hover{transform:translateY(-5px);}
+.trip-card h3{margin-bottom:8px;}
+.trip-card p{font-size:14px;opacity:0.9;margin-bottom:6px;}
+
+.trip-actions{
+margin-top:12px;
+display:flex;
+gap:8px;
+flex-wrap:wrap;
+}
+
+.trip-actions button{
+flex:1;padding:7px;border:none;border-radius:8px;
+cursor:pointer;font-size:13px;transition:0.3s;
+}
+
+/* View */
+.trip-actions button:nth-child(1){background:#22c55e;color:white;}
+.trip-actions button:nth-child(1):hover{background:#16a34a;}
+
+/* Edit */
+.trip-actions button:nth-child(2){background:#3b82f6;color:white;}
+.trip-actions button:nth-child(2):hover{background:#2563eb;}
+
+/* Delete */
+.trip-actions button:nth-child(3){background:#ef4444;color:white;}
+.trip-actions button:nth-child(3):hover{background:#dc2626;}
+
+/* Tracker NEW BUTTON */
+.trip-actions button:nth-child(4){
+background:#f59e0b;
+color:white;
+}
+.trip-actions button:nth-child(4):hover{
+background:#d97706;
+}
+
+@media(max-width:600px){
+.container{padding:20px;}
+.navbar{padding:15px 20px;}
+}
+</style>
+</head>
+
+<body>
+
+<nav class="navbar">
+<div class="logo">Onestop</div>
+<div class="nav-actions">
+<a href="createtrip.html" class="btn">+ Create Trip</a>
+<button class="logout-btn" onclick="logout()">Logout</button>
+</div>
+</nav>
+
+<main class="container">
+
+<div class="summary">
+<div class="summary-card">
+<h3 id="totalTrips">0</h3>
+<p>Total Trips</p>
+</div>
+</div>
+
+<h2>Your Trips</h2>
+<div id="tripList" class="trip-list"></div>
+
+</main>
+
+<script>
+const token = localStorage.getItem("token");
+const tripList = document.getElementById("tripList");
+const totalTripsEl = document.getElementById("totalTrips");
+
+async function loadTrips(){
+try{
+const res = await fetch("http://localhost:5000/api/trips",{
+headers:{ "Authorization":"Bearer "+token }
+});
+
+if(res.status===401){
+alert("Session expired ❌ Please login again");
+logout();
+return;
+}
+
+const data = await res.json();
+if(!data.success){
+alert("Failed to load trips");
+return;
+}
+
+const trips = data.trips || [];
+totalTripsEl.innerText = trips.length;
+tripList.innerHTML="";
+
+if(trips.length===0){
+tripList.innerHTML="<p>No trips created yet</p>";
+return;
+}
+
+trips.forEach(trip=>{
+const card=document.createElement("div");
+card.className="trip-card";
+
+card.innerHTML=`
+<h3>${trip.tripName}</h3>
+<p>${trip.source} → ${trip.destination}</p>
+<p><strong>Dates:</strong>
+${trip.startDate ? new Date(trip.startDate).toDateString() : "-"}
+→
+${trip.endDate ? new Date(trip.endDate).toDateString() : "-"}
+</p>
+
+<div class="trip-actions">
+<button onclick="viewTrip('${trip._id}')">View</button>
+<button onclick="editTrip('${trip._id}')">Edit</button>
+<button onclick="deleteTrip('${trip._id}')">Delete</button>
+<button onclick="openTracker('${trip._id}')">Tracker</button>
+</div>
+`;
+
+tripList.appendChild(card);
+});
+
+}catch(err){
+alert("Backend not reachable ❌");
+console.error(err);
+}
+}
+
+/* VIEW */
+function viewTrip(id){
+localStorage.setItem("selectedTripId",id);
+window.location.href="tripdetails.html";
+}
+
+/* EDIT */
+function editTrip(id){
+localStorage.setItem("editTripId",id);
+window.location.href="createtrip.html";
+}
+
+/* DELETE */
+async function deleteTrip(id){
+if(!confirm("Delete this trip?")) return;
+
+try{
+const res=await fetch(`http://localhost:5000/api/trips/${id}`,{
+method:"DELETE",
+headers:{ "Authorization":"Bearer "+token }
+});
+const data=await res.json();
+
+if(data.success){
+alert("Trip deleted ✅");
+loadTrips();
+}else{
+alert("Delete failed ❌");
+}
+}catch(err){
+alert("Server error ❌");
+}
+}
+
+/* TRACKER NEW */
+function openTracker(id){
+localStorage.setItem("trackerTripId",id);
+window.location.href="tracker.html";
+}
+
+/* LOGOUT */
+function logout(){
+localStorage.removeItem("token");
+localStorage.removeItem("user");
+window.location.replace("login.html");
+}
+
+loadTrips();
+</script>
+
+</body>
+</html>

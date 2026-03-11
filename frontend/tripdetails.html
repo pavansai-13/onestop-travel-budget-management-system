@@ -1,0 +1,500 @@
+ <!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Trip Details | Onestop</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+<script>
+if (!localStorage.getItem("token")) {
+  window.location.replace("login.html");
+}
+</script>
+
+<style>
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:"Poppins",sans-serif
+}
+
+body{
+background:linear-gradient(135deg,#0f172a,#1e40af);
+color:white;
+min-height:100vh;
+}
+
+.navbar{
+display:flex;
+justify-content:space-between;
+align-items:center;
+padding:18px 40px;
+background:rgba(255,255,255,0.08);
+backdrop-filter:blur(15px);
+border-bottom:1px solid rgba(255,255,255,0.15);
+}
+
+.logo{
+font-size:22px;
+font-weight:600;
+}
+
+.back{
+color:#facc15;
+text-decoration:none;
+font-weight:500;
+}
+
+.container{
+padding:30px;
+max-width:1100px;
+margin:auto;
+}
+
+#tripName{
+margin-bottom:5px;
+font-size:26px;
+}
+
+#route{
+opacity:0.8;
+margin-bottom:20px;
+}
+
+.top-controls{
+display:flex;
+gap:25px;
+flex-wrap:wrap;
+background:rgba(255,255,255,0.1);
+padding:18px;
+border-radius:16px;
+margin-bottom:25px;
+}
+
+input[type="number"]{
+width:80px;
+padding:7px;
+border-radius:8px;
+border:none;
+margin-left:6px;
+background:rgba(255,255,255,0.2);
+color:white;
+text-align:center;
+}
+
+.card{
+background:rgba(255,255,255,0.12);
+padding:22px;
+margin-bottom:22px;
+border-radius:18px;
+box-shadow:0 10px 30px rgba(0,0,0,0.4);
+}
+
+.card h3{
+margin-bottom:14px;
+}
+
+.selection-box{
+padding:12px;
+margin-bottom:10px;
+border-radius:12px;
+background:rgba(255,255,255,0.08);
+transition:0.25s;
+cursor:pointer;
+}
+
+.selection-box:hover{
+background:rgba(255,255,255,0.18);
+}
+
+.selection-box label{
+cursor:pointer;
+display:block;
+}
+
+input[type="radio"]{
+margin-right:8px;
+}
+
+.total{
+text-align:center;
+background:linear-gradient(135deg,#f59e0b,#f97316);
+}
+
+#grandTotal{
+font-size:36px;
+margin-top:8px;
+font-weight:700;
+}
+
+</style>
+</head>
+
+<body>
+
+<nav class="navbar">
+<div class="logo">Onestop</div>
+<a href="dashboard.html" class="back">← Dashboard</a>
+</nav>
+
+<main class="container">
+
+<h2 id="tripName">Trip Details</h2>
+<p id="route"></p>
+
+<div class="top-controls">
+
+<div>
+Trip Duration:
+<input type="number" id="daysInput" min="1" value="1"> day(s)
+</div>
+
+<div>
+Persons:
+<input type="number" id="personsInput" min="1" value="1">
+</div>
+
+</div>
+
+<section class="card">
+<h3>🚆 Transport</h3>
+<div id="transportList"></div>
+</section>
+
+<section class="card">
+<h3>🏨 Hotels</h3>
+<div id="hotelList"></div>
+</section>
+
+<section class="card">
+<h3>🍴 Food</h3>
+<div id="foodList"></div>
+</section>
+
+<section class="card">
+<h3>💰 Other Costs</h3>
+<div id="otherCostList"></div>
+</section>
+
+<section class="card total">
+<h3>💰 Estimated Total Budget</h3>
+<h2 id="grandTotal">₹0</h2>
+</section>
+
+</main>
+
+<script>
+
+const token = localStorage.getItem("token");
+const tripId = localStorage.getItem("selectedTripId");
+
+let totalDays = 1;
+let totalPersons = 1;
+
+const selected = {
+transport:{},
+hotel:0,
+food:0,
+other:0
+};
+
+/* LOAD SAVED SELECTIONS */
+
+function loadSavedSelections(){
+
+const saved = localStorage.getItem("tripSelections_"+tripId);
+
+if(saved){
+const parsed = JSON.parse(saved);
+
+selected.transport = parsed.transport || {};
+selected.hotel = parsed.hotel || 0;
+selected.food = parsed.food || 0;
+selected.other = parsed.other || 0;
+}
+
+}
+
+/* UPDATE TOTAL */
+
+function updateTotal(){
+
+const transportTotal = Object.values(selected.transport).reduce((a,b)=>a+b,0);
+
+const grand = transportTotal + selected.hotel + selected.food + selected.other;
+
+document.getElementById("grandTotal").innerText=`₹${grand}`;
+
+/* SAVE FOR TRACKER PAGE */
+localStorage.setItem("tripBudget_"+tripId, grand);
+
+/* SAVE SELECTIONS */
+localStorage.setItem("tripSelections_"+tripId, JSON.stringify(selected));
+
+}
+
+/* LOAD DATA */
+
+async function loadTripDetails(){
+
+const tripRes=await fetch(`http://localhost:5000/api/trips/${tripId}`,{
+headers:{Authorization:"Bearer "+token}
+});
+
+const tripData=await tripRes.json();
+
+document.getElementById("tripName").innerText=tripData.trip.tripName;
+
+document.getElementById("route").innerText=
+`${tripData.trip.source} → ${tripData.trip.destination}`;
+
+const detailsRes=await fetch(`http://localhost:5000/api/trip-details/${tripId}`,{
+headers:{Authorization:"Bearer "+token}
+});
+
+const details=await detailsRes.json();
+
+totalDays=details.totalDays||1;
+
+document.getElementById("daysInput").value=totalDays;
+
+showTransport(details.transport);
+showHotels(details.hotels);
+showFood(details.food);
+showOtherCosts(details.otherCosts);
+
+updateTotal();
+
+}
+
+/* INPUTS */
+
+document.getElementById("daysInput").addEventListener("change",function(){
+totalDays=parseInt(this.value)||1;
+selected.hotel=0;
+selected.food=0;
+updateTotal();
+});
+
+document.getElementById("personsInput").addEventListener("change",function(){
+totalPersons=parseInt(this.value)||1;
+selected.transport={};
+selected.food=0;
+updateTotal();
+});
+
+/* TRANSPORT */
+
+function showTransport(transport){
+
+const div=document.getElementById("transportList");
+
+div.innerHTML="";
+
+let legIndex=0;
+
+for(let journey in transport){
+
+div.innerHTML+=`<h4>${journey.toUpperCase()}</h4>`;
+
+transport[journey].forEach(segment=>{
+
+const legKey=`leg_${legIndex}`;
+
+div.innerHTML+=`<p><b>${segment.leg}</b></p>`;
+
+for(let mode in segment.options){
+
+segment.options[mode].forEach(opt=>{
+
+let label=mode==="train"
+?`${opt.trainNo} (${opt.class})`
+:mode==="flight"
+?opt.flightNo
+:opt.operator;
+
+const checked = selected.transport[legKey] == opt.price*totalPersons ? "checked" : "";
+
+div.innerHTML+=`
+
+<div class="selection-box">
+
+<label>
+
+<input type="radio" name="${legKey}"
+${checked}
+onchange="selectTransport('${legKey}',${opt.price})">
+
+${mode.toUpperCase()} – ${label} – ₹${opt.price}
+
+</label>
+
+</div>
+
+`;
+
+});
+
+}
+
+legIndex++;
+
+});
+
+}
+
+}
+
+function selectTransport(legKey,price){
+
+selected.transport[legKey]=price*totalPersons;
+
+updateTotal();
+
+}
+
+/* HOTELS */
+
+function showHotels(hotels){
+
+const div=document.getElementById("hotelList");
+
+div.innerHTML="";
+
+hotels.forEach(h=>{
+
+const checked = selected.hotel == h.pricePerNight*totalDays ? "checked" : "";
+
+div.innerHTML+=`
+
+<div class="selection-box">
+
+<label>
+
+<input type="radio" name="hotel"
+${checked}
+onchange="selectHotel(${h.pricePerNight})">
+
+<strong>${h.name}</strong><br>
+
+Type: ${h.type} | ⭐ ${h.rating}<br>
+
+₹${h.pricePerNight}/night
+
+</label>
+
+</div>
+
+`;
+
+});
+
+}
+
+function selectHotel(price){
+
+selected.hotel=price*totalDays;
+
+updateTotal();
+
+}
+
+/* FOOD */
+
+function showFood(food){
+
+const div=document.getElementById("foodList");
+
+div.innerHTML="";
+
+if(!food||!food.success){
+
+div.innerHTML="<p>No food options.</p>";
+
+return;
+
+}
+
+div.innerHTML+=`<p>Estimated Budget ₹${food.perDayEstimate}/day</p>`;
+
+food.restaurants.forEach(r=>{
+
+const checked = selected.food == r.price*totalDays*totalPersons ? "checked" : "";
+
+div.innerHTML+=`
+
+<div class="selection-box">
+
+<label>
+
+<input type="radio" name="food"
+${checked}
+onchange="selectFood(${r.price})">
+
+${r.name} – ${r.mealType} – ₹${r.price}
+
+</label>
+
+</div>
+
+`;
+
+});
+
+}
+
+function selectFood(price){
+
+selected.food=price*totalDays*totalPersons;
+
+updateTotal();
+
+}
+
+/* OTHER */
+
+function showOtherCosts(c){
+
+const checked = selected.other == c.total ? "checked" : "";
+
+document.getElementById("otherCostList").innerHTML=`
+
+<div class="selection-box">
+
+<label>
+
+<input type="radio" name="other"
+${checked}
+onchange="selectOther(${c.total})">
+
+Guide + Local Travel + Entry Fees – ₹${c.total}
+
+</label>
+
+</div>
+
+`;
+
+}
+
+function selectOther(cost){
+
+selected.other=cost;
+
+updateTotal();
+
+}
+
+/* START */
+
+loadSavedSelections();
+loadTripDetails();
+
+</script>
+
+</body>
+</html>

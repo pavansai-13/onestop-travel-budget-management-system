@@ -1,0 +1,94 @@
+/* Background */
+body {
+    margin: 0;
+    font-family: 'Segoe UI', sans-serif;
+    min-height: 100vh;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+}
+
+/* Navbar */
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 18px 40px;
+    background: rgba(0, 0, 0, 0.25);
+    color: white;
+}
+
+.logo {
+    font-size: 22px;
+    font-weight: 600;
+}
+
+.back {
+    color: white;
+    text-decoration: none;
+    border: 1px solid white;
+    padding: 6px 12px;
+    border-radius: 6px;
+}
+
+/* Layout */
+.container {
+    display: flex;
+    justify-content: center;
+    padding: 50px 20px;
+}
+
+/* Form Card */
+.form-card {
+    background: white;
+    width: 100%;
+    max-width: 650px;
+    border-radius: 14px;
+    padding: 30px;
+}
+
+.form-card h2 {
+    margin-top: 0;
+}
+
+.subtitle {
+    color: #666;
+    margin-bottom: 25px;
+}
+
+/* Form */
+form {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.row {
+    display: flex;
+    gap: 15px;
+}
+
+input, textarea {
+    width: 100%;
+    padding: 12px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    font-size: 14px;
+}
+
+textarea {
+    resize: none;
+    height: 90px;
+}
+
+button {
+    background: #667eea;
+    color: white;
+    border: none;
+    padding: 12px;
+    font-size: 15px;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+button:hover {
+    background: #5563c1;
+}

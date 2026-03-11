@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Trip Expense Tracker</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:"Poppins",sans-serif;
+}
+
+body{
+background:linear-gradient(135deg,#0f172a,#1e40af);
+min-height:100vh;
+color:white;
+display:flex;
+justify-content:center;
+padding:40px;
+}
+
+.container{
+background:rgba(255,255,255,0.1);
+padding:40px;
+border-radius:20px;
+width:800px;
+box-shadow:0 20px 40px rgba(0,0,0,0.4);
+}
+
+h2{
+text-align:center;
+margin-bottom:20px;
+}
+
+/* Budget box */
+
+.budget-box{
+background:rgba(255,255,255,0.15);
+padding:15px;
+border-radius:12px;
+margin-bottom:20px;
+text-align:center;
+}
+
+/* Inputs */
+
+input{
+width:100%;
+padding:12px;
+margin-bottom:12px;
+border:none;
+border-radius:10px;
+background:rgba(255,255,255,0.2);
+color:white;
+font-size:14px;
+outline:none;
+}
+
+input::placeholder{
+color:#e5e7eb;
+}
+
+/* Buttons */
+
+button{
+padding:10px 20px;
+border:none;
+border-radius:8px;
+background:#22c55e;
+color:white;
+font-weight:600;
+cursor:pointer;
+display:block;
+margin:10px auto;
+}
+
+button:hover{
+background:#16a34a;
+}
+
+/* Layout */
+
+.main-layout{
+display:flex;
+gap:25px;
+margin-top:20px;
+align-items:flex-start;
+}
+
+.expense-section{
+flex:1;
+}
+
+.chart-section{
+width:260px;
+background:rgba(255,255,255,0.1);
+padding:15px;
+border-radius:12px;
+}
+
+.chart-section canvas{
+width:100%!important;
+}
+
+/* Expense cards */
+
+.expense-item{
+display:flex;
+justify-content:space-between;
+align-items:center;
+background:rgba(255,255,255,0.15);
+padding:12px;
+border-radius:10px;
+margin-bottom:10px;
+position:relative;
+}
+
+.expense-left{
+display:flex;
+flex-direction:column;
+}
+
+/* menu */
+
+.menu-btn{
+cursor:pointer;
+font-size:20px;
+padding:5px;
+}
+
+.dropdown{
+display:none;
+position:absolute;
+right:10px;
+top:35px;
+background:white;
+color:black;
+border-radius:6px;
+overflow:hidden;
+}
+
+.dropdown div{
+padding:8px 12px;
+cursor:pointer;
+}
+
+.dropdown div:hover{
+background:#f3f4f6;
+}
+
+/* Summary box */
+
+.summary{
+margin-top:20px;
+padding:18px;
+border-radius:12px;
+text-align:center;
+font-weight:600;
+}
+
+.safe{background:#16a34a;}
+.warning{background:#f59e0b;}
+.danger{background:#dc2626;}
+
+@media(max-width:700px){
+
+.container{
+width:100%;
+}
+
+.main-layout{
+flex-direction:column;
+}
+
+.chart-section{
+width:100%;
+}
+
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h2>Expense Tracker</h2>
+
+<div class="budget-box">
+
+<p>Estimated Budget: ₹ <span id="estimatedBudget">0</span></p>
+
+</div>
+
+<input type="text" id="expenseTitle" placeholder="Expense Title (Food, Hotel, Travel)">
+<input type="number" id="expenseAmount" placeholder="Amount">
+
+<button onclick="addExpense()">Add Expense</button>
+
+<div class="main-layout">
+
+<div class="expense-section">
+
+<div id="expenseList"></div>
+
+<div class="summary safe" id="summaryBox">
+Total Expense: ₹ 0
+</div>
+
+</div>
+
+<div class="chart-section">
+<canvas id="expenseChart"></canvas>
+</div>
+
+</div>
+
+</div>
+
+<script>
+
+const tripId = localStorage.getItem("selectedTripId");
+
+if(!tripId){
+alert("Trip not selected");
+window.location.href="dashboard.html";
+}
+
+let estimatedBudget = 0;
+let totalExpense = 0;
+let expenses = [];
+let chart;
+
+/* LOAD */
+
+function loadExpenses(){
+
+const storedBudget = localStorage.getItem("tripBudget_"+tripId);
+
+if(storedBudget){
+estimatedBudget = parseFloat(storedBudget);
+document.getElementById("estimatedBudget").innerText = estimatedBudget;
+}
+
+const stored = localStorage.getItem("expenses_"+tripId);
+
+if(stored){
+expenses = JSON.parse(stored);
+}else{
+expenses = [];
+}
+
+renderExpenses();
+compareBudget();
+updateChart();
+
+}
+
+/* SAVE */
+
+function saveExpenses(){
+localStorage.setItem("expenses_"+tripId,JSON.stringify(expenses));
+}
+
+/* ADD EXPENSE */
+
+function addExpense(){
+
+const title=document.getElementById("expenseTitle").value.trim();
+const amount=parseFloat(document.getElementById("expenseAmount").value);
+
+if(!title || isNaN(amount) || amount<=0){
+alert("Enter valid expense");
+return;
+}
+
+expenses.push({title,amount});
+
+saveExpenses();
+
+renderExpenses();
+compareBudget();
+updateChart();
+
+document.getElementById("expenseTitle").value="";
+document.getElementById("expenseAmount").value="";
+
+}
+
+/* RENDER */
+
+function renderExpenses(){
+
+const list=document.getElementById("expenseList");
+list.innerHTML="";
+totalExpense=0;
+
+expenses.forEach((exp,index)=>{
+
+totalExpense+=exp.amount;
+
+const div=document.createElement("div");
+div.className="expense-item";
+
+div.innerHTML=`
+
+<div class="expense-left">
+<span>${exp.title}</span>
+<span>₹ ${exp.amount}</span>
+</div>
+
+<div>
+<span class="menu-btn" onclick="toggleMenu(${index})">⋮</span>
+
+<div class="dropdown" id="menu-${index}">
+<div onclick="editExpense(${index})">Edit</div>
+<div onclick="deleteExpense(${index})">Delete</div>
+</div>
+</div>
+
+`;
+
+list.appendChild(div);
+
+});
+
+}
+
+/* MENU */
+
+function toggleMenu(index){
+
+document.querySelectorAll(".dropdown").forEach(menu=>{
+menu.style.display="none";
+});
+
+const menu=document.getElementById("menu-"+index);
+
+menu.style.display = menu.style.display==="block" ? "none":"block";
+
+}
+
+/* EDIT */
+
+function editExpense(index){
+
+const newTitle = prompt("Edit Title",expenses[index].title);
+const newAmount = parseFloat(prompt("Edit Amount",expenses[index].amount));
+
+if(newTitle && !isNaN(newAmount) && newAmount>0){
+
+expenses[index].title=newTitle;
+expenses[index].amount=newAmount;
+
+saveExpenses();
+
+renderExpenses();
+compareBudget();
+updateChart();
+
+}
+
+}
+
+/* DELETE */
+
+function deleteExpense(index){
+
+if(confirm("Delete this expense?")){
+
+expenses.splice(index,1);
+
+saveExpenses();
+
+renderExpenses();
+compareBudget();
+updateChart();
+
+}
+
+}
+
+/* BUDGET CHECK */
+
+function compareBudget(){
+
+const summary=document.getElementById("summaryBox");
+
+summary.innerHTML=`Total Expense: ₹ ${totalExpense}`;
+
+if(!estimatedBudget || estimatedBudget<=0){
+
+summary.className="summary warning";
+summary.innerHTML+="<br>⚠ No Estimated Budget";
+
+return;
+
+}
+
+let percent=(totalExpense/estimatedBudget)*100;
+
+if(totalExpense>estimatedBudget){
+
+summary.className="summary danger";
+summary.innerHTML+="<br>⚠ Over Budget";
+
+}
+
+else if(percent>=80){
+
+summary.className="summary warning";
+summary.innerHTML+="<br>⚠ Budget Almost Finished";
+
+}
+
+else{
+
+summary.className="summary safe";
+summary.innerHTML+="<br>✅ Within Budget";
+
+}
+
+}
+
+/* PIE CHART */
+
+function updateChart(){
+
+const categories = {};
+
+expenses.forEach(exp=>{
+
+const title = exp.title.toLowerCase();
+
+if(!categories[title]){
+categories[title]=0;
+}
+
+categories[title]+=exp.amount;
+
+});
+
+const labels = Object.keys(categories);
+const values = Object.values(categories);
+
+if(chart){
+chart.destroy();
+}
+
+const ctx = document.getElementById("expenseChart");
+
+chart = new Chart(ctx,{
+type:"pie",
+data:{
+labels:labels,
+datasets:[{
+data:values,
+backgroundColor:[
+"#22c55e",
+"#3b82f6",
+"#f59e0b",
+"#ef4444",
+"#a855f7",
+"#14b8a6"
+]
+}]
+},
+options:{
+plugins:{
+legend:{
+labels:{color:"white"}
+}
+}
+}
+});
+
+}
+
+loadExpenses();
+
+</script>
+
+</body>
+</html>
