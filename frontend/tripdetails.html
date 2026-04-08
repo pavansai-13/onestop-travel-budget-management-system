@@ -227,7 +227,8 @@ input[type="radio"]{
 </main>
 
 <script>
-const API_BASE = "https://onestop-travel-budget-management-system-1.onrender.com";
+const API_BASE = "http://localhost:5000";
+
 const token = localStorage.getItem("token");
 const tripId = localStorage.getItem("selectedTripId");
 
@@ -294,7 +295,7 @@ function updateTotal() {
 
 async function saveSelectionsToBackend() {
   try {
-    const res = await fetch(`${API_BASE}/api/trips/${tripId}/selections`), {
+    const res = await fetch(`${API_BASE}/api/trips/${tripId}/selections`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -325,7 +326,7 @@ async function saveSelectionsToBackend() {
 
 async function loadTripDetails() {
   try {
-    const tripRes = await fetch(`${API_BASE}/api/trips/${tripId}`), {
+    const tripRes = await fetch(`${API_BASE}/api/trips/${tripId}`, {
       headers: { Authorization: "Bearer " + token }
     });
 
@@ -341,7 +342,7 @@ async function loadTripDetails() {
 
     await loadSavedSelectionsFromBackend(tripData.trip);
 
-    const detailsRes = await fetch(`${API_BASE}/api/trip-details/${tripId}`), {
+    const detailsRes = await fetch(`${API_BASE}/api/trip-details/${tripId}`, {
       headers: { Authorization: "Bearer " + token }
     });
 
