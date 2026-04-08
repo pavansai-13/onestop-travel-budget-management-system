@@ -291,6 +291,7 @@ router.post("/:id/selections", authmiddleware, async (req, res) => {
       });
     }
 
+    // ✅ Save selections
     trip.selectedTransport = selectedTransport || {};
     trip.selectedHotel = selectedHotel || 0;
     trip.selectedFood = selectedFood || 0;
@@ -298,11 +299,24 @@ router.post("/:id/selections", authmiddleware, async (req, res) => {
     trip.totalDays = totalDays || 1;
     trip.totalPersons = totalPersons || 1;
 
+    // 🔥 IMPORTANT FIX (BUDGET CALCULATION)
+    const transportTotal = Object.values(selectedTransport || {}).reduce(
+      (a, b) => a + b,
+      0
+    );
+
+    trip.estimatedBudget =
+      transportTotal +
+      (selectedHotel || 0) +
+      (selectedFood || 0) +
+      (selectedOther || 0);
+
     await trip.save();
 
     res.json({
       success: true,
-      message: "Selections saved successfully"
+      message: "Selections saved successfully",
+      estimatedBudget: trip.estimatedBudget   // optional (good for debug)
     });
 
   } catch (error) {
