@@ -70,6 +70,7 @@ Already have an account?
 </div>
 
 <script>
+const API_BASE = "https://onestop-travel-budget-management-system-1.onrender.com";
 const signupForm = document.getElementById("signupForm");
 
 signupForm.addEventListener("submit", async (e) => {
@@ -95,7 +96,7 @@ signupForm.addEventListener("submit", async (e) => {
   btn.disabled = true;
 
   try{
-    const res = await fetch("http://localhost:5000/api/auth/signup",{
+    const res = await fetch(`${API_BASE}/api/auth/signup`,{
       method:"POST",
       headers:{ "Content-Type":"application/json" },
       body: JSON.stringify({ name,email,password })
