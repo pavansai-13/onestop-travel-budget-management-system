@@ -24,7 +24,7 @@ backdrop-filter:blur(12px);box-shadow:0 5px 20px rgba(0,0,0,0.2);
 }
 
 .logo{font-size:22px;font-weight:600;letter-spacing:1px;}
-.nav-actions{display:flex;gap:12px;}
+.nav-actions{display:flex;gap:12px;align-items:center;}
 
 .btn,.logout-btn{
 padding:9px 16px;border:none;border-radius:10px;
@@ -35,6 +35,27 @@ cursor:pointer;font-weight:500;transition:0.3s;
 .btn:hover{background:#d97706;transform:translateY(-2px);}
 .logout-btn{background:#ef4444;color:white;}
 .logout-btn:hover{background:#dc2626;}
+
+/* ✅ NEW PROFILE BUTTON STYLE */
+.profile-btn{
+width:42px;
+height:42px;
+border-radius:50%;
+border:none;
+background:#f59e0b;
+color:white;
+font-size:18px;
+display:flex;
+align-items:center;
+justify-content:center;
+cursor:pointer;
+transition:0.3s;
+}
+
+.profile-btn:hover{
+background:#d97706;
+transform:scale(1.1);
+}
 
 .container{padding:30px 40px;}
 
@@ -110,12 +131,20 @@ background:#d97706;
 <nav class="navbar">
 <div class="logo">Onestop</div>
 <div class="nav-actions">
+
+<!-- ✅ UPDATED PROFILE BUTTON -->
+<button class="profile-btn" onclick="goToProfile()" id="profileIcon">
+P
+</button>
+
 <a href="createtrip.html" class="btn">+ Create Trip</a>
 <button class="logout-btn" onclick="logout()">Logout</button>
 </div>
 </nav>
 
 <main class="container">
+
+<h2 id="welcomeText" style="margin-bottom:10px;"></h2>
 
 <div class="summary">
 <div class="summary-card">
@@ -133,6 +162,14 @@ background:#d97706;
 const token = localStorage.getItem("token");
 const tripList = document.getElementById("tripList");
 const totalTripsEl = document.getElementById("totalTrips");
+
+// SHOW USER NAME
+const user = JSON.parse(localStorage.getItem("user"));
+
+if(user && user.name){
+  document.getElementById("welcomeText").innerText =
+    `Hey, ${user.name} 👋 Welcome back!`;
+}
 
 async function loadTrips(){
 try{
@@ -231,6 +268,11 @@ localStorage.setItem("trackerTripId",id);
 window.location.href="tracker.html";
 }
 
+/* PROFILE */
+function goToProfile(){
+window.location.href="profile.html";
+}
+
 /* LOGOUT */
 function logout(){
 localStorage.removeItem("token");
@@ -239,6 +281,10 @@ window.location.replace("login.html");
 }
 
 loadTrips();
+if(user && user.name){
+  document.getElementById("profileIcon").innerText =
+    user.name.charAt(0).toUpperCase();
+}
 </script>
 
 </body>

@@ -1,11 +1,11 @@
- <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
 <title>Trip Details | Onestop</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
 
 <script>
 if (!localStorage.getItem("token")) {
@@ -14,486 +14,577 @@ if (!localStorage.getItem("token")) {
 </script>
 
 <style>
-
 *{
-margin:0;
-padding:0;
-box-sizing:border-box;
-font-family:"Poppins",sans-serif
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+  font-family:"Poppins",sans-serif;
 }
 
 body{
-background:linear-gradient(135deg,#0f172a,#1e40af);
-color:white;
-min-height:100vh;
+  background:linear-gradient(135deg,#0f172a,#1e40af);
+  color:white;
+  min-height:100vh;
 }
 
 .navbar{
-display:flex;
-justify-content:space-between;
-align-items:center;
-padding:18px 40px;
-background:rgba(255,255,255,0.08);
-backdrop-filter:blur(15px);
-border-bottom:1px solid rgba(255,255,255,0.15);
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:18px 40px;
+  background:rgba(255,255,255,0.08);
+  backdrop-filter:blur(15px);
+  border-bottom:1px solid rgba(255,255,255,0.15);
 }
 
 .logo{
-font-size:22px;
-font-weight:600;
+  font-size:22px;
+  font-weight:600;
 }
 
 .back{
-color:#facc15;
-text-decoration:none;
-font-weight:500;
+  color:#facc15;
+  text-decoration:none;
+  font-weight:500;
 }
 
 .container{
-padding:30px;
-max-width:1100px;
-margin:auto;
+  padding:30px;
+  max-width:1100px;
+  margin:auto;
 }
 
 #tripName{
-margin-bottom:5px;
-font-size:26px;
+  margin-bottom:5px;
+  font-size:26px;
 }
 
 #route{
-opacity:0.8;
-margin-bottom:20px;
+  opacity:0.8;
+  margin-bottom:20px;
 }
 
 .top-controls{
-display:flex;
-gap:25px;
-flex-wrap:wrap;
-background:rgba(255,255,255,0.1);
-padding:18px;
-border-radius:16px;
-margin-bottom:25px;
+  display:flex;
+  gap:25px;
+  flex-wrap:wrap;
+  background:rgba(255,255,255,0.1);
+  padding:18px;
+  border-radius:16px;
+  margin-bottom:25px;
 }
 
 input[type="number"]{
-width:80px;
-padding:7px;
-border-radius:8px;
-border:none;
-margin-left:6px;
-background:rgba(255,255,255,0.2);
-color:white;
-text-align:center;
+  width:80px;
+  padding:7px;
+  border-radius:8px;
+  border:none;
+  margin-left:6px;
+  background:rgba(255,255,255,0.2);
+  color:white;
+  text-align:center;
 }
 
 .card{
-background:rgba(255,255,255,0.12);
-padding:22px;
-margin-bottom:22px;
-border-radius:18px;
-box-shadow:0 10px 30px rgba(0,0,0,0.4);
+  background:rgba(255,255,255,0.12);
+  padding:22px;
+  margin-bottom:22px;
+  border-radius:18px;
+  box-shadow:0 10px 30px rgba(0,0,0,0.4);
 }
 
 .card h3{
-margin-bottom:14px;
+  margin-bottom:14px;
 }
 
 .selection-box{
-padding:12px;
-margin-bottom:10px;
-border-radius:12px;
-background:rgba(255,255,255,0.08);
-transition:0.25s;
-cursor:pointer;
+  padding:12px;
+  margin-bottom:10px;
+  border-radius:12px;
+  background:rgba(255,255,255,0.08);
+  transition:0.25s;
+  cursor:pointer;
 }
 
 .selection-box:hover{
-background:rgba(255,255,255,0.18);
+  background:rgba(255,255,255,0.18);
 }
 
 .selection-box label{
-cursor:pointer;
-display:block;
+  cursor:pointer;
+  display:block;
 }
 
 input[type="radio"]{
-margin-right:8px;
+  margin-right:8px;
 }
 
 .total{
-text-align:center;
-background:linear-gradient(135deg,#f59e0b,#f97316);
+  text-align:center;
+  background:linear-gradient(135deg,#f59e0b,#f97316);
 }
 
 #grandTotal{
-font-size:36px;
-margin-top:8px;
-font-weight:700;
+  font-size:36px;
+  margin-top:8px;
+  font-weight:700;
 }
 
+.btn-save{
+  width:100%;
+  padding:14px;
+  border:none;
+  border-radius:12px;
+  font-size:16px;
+  font-weight:600;
+  cursor:pointer;
+  background:#facc15;
+  color:#111827;
+  transition:0.3s;
+}
+
+.btn-save:hover{
+  transform:translateY(-1px);
+  opacity:0.95;
+}
+
+.note{
+  font-size:14px;
+  opacity:0.8;
+  margin-top:8px;
+}
+
+.leg-title{
+  margin:14px 0 8px;
+  color:#facc15;
+  font-weight:600;
+}
+
+.journey-title{
+  margin:10px 0;
+  font-size:18px;
+}
+
+.small-text{
+  font-size:14px;
+  opacity:0.85;
+}
 </style>
 </head>
 
 <body>
 
 <nav class="navbar">
-<div class="logo">Onestop</div>
-<a href="dashboard.html" class="back">← Dashboard</a>
+  <div class="logo">Onestop</div>
+  <a href="dashboard.html" class="back">← Dashboard</a>
 </nav>
 
 <main class="container">
+  <h2 id="tripName">Trip Details</h2>
+  <p id="route"></p>
 
-<h2 id="tripName">Trip Details</h2>
-<p id="route"></p>
+  <div class="top-controls">
+    <div>
+      Trip Duration:
+      <input type="number" id="daysInput" min="1" value="1"> day(s)
+    </div>
 
-<div class="top-controls">
+    <div>
+      Persons:
+      <input type="number" id="personsInput" min="1" value="1">
+    </div>
+  </div>
 
-<div>
-Trip Duration:
-<input type="number" id="daysInput" min="1" value="1"> day(s)
-</div>
+  <section class="card">
+    <h3>🧳 Transport</h3>
+    <div id="transportList"></div>
+  </section>
 
-<div>
-Persons:
-<input type="number" id="personsInput" min="1" value="1">
-</div>
+  <section class="card">
+    <h3>🏨 Hotels</h3>
+    <div id="hotelList"></div>
+  </section>
 
-</div>
+  <section class="card">
+    <h3>🍴 Food</h3>
+    <div id="foodList"></div>
+  </section>
 
-<section class="card">
-<h3>🚆 Transport</h3>
-<div id="transportList"></div>
-</section>
+  <section class="card">
+    <h3>💰 Other Costs</h3>
+    <div id="otherCostList"></div>
+  </section>
 
-<section class="card">
-<h3>🏨 Hotels</h3>
-<div id="hotelList"></div>
-</section>
+  <section class="card total">
+    <h3>💰 Estimated Total Budget</h3>
+    <h2 id="grandTotal">₹0</h2>
+  </section>
 
-<section class="card">
-<h3>🍴 Food</h3>
-<div id="foodList"></div>
-</section>
-
-<section class="card">
-<h3>💰 Other Costs</h3>
-<div id="otherCostList"></div>
-</section>
-
-<section class="card total">
-<h3>💰 Estimated Total Budget</h3>
-<h2 id="grandTotal">₹0</h2>
-</section>
-
+  <section class="card">
+    <button id="saveSelectionsBtn" class="btn-save">Save Trip Details</button>
+    <p class="note">This will save selected options to the database.</p>
+  </section>
 </main>
 
 <script>
-
 const token = localStorage.getItem("token");
 const tripId = localStorage.getItem("selectedTripId");
+
+if (!tripId) {
+  alert("No trip selected.");
+  window.location.href = "dashboard.html";
+}
 
 let totalDays = 1;
 let totalPersons = 1;
 
+let currentTransportData = { onward: [], return: [] };
+let currentHotelData = [];
+let currentFoodData = { success: false, restaurants: [], perDayEstimate: 0 };
+let currentOtherCostData = { total: 0 };
+
 const selected = {
-transport:{},
-hotel:0,
-food:0,
-other:0
+  transport: {},
+  hotel: 0,
+  food: 0,
+  other: 0
 };
 
-/* LOAD SAVED SELECTIONS */
+function loadSavedSelectionsFromLocal() {
+  const saved = localStorage.getItem("tripSelections_" + tripId);
 
-function loadSavedSelections(){
-
-const saved = localStorage.getItem("tripSelections_"+tripId);
-
-if(saved){
-const parsed = JSON.parse(saved);
-
-selected.transport = parsed.transport || {};
-selected.hotel = parsed.hotel || 0;
-selected.food = parsed.food || 0;
-selected.other = parsed.other || 0;
+  if (saved) {
+    const parsed = JSON.parse(saved);
+    selected.transport = parsed.transport || {};
+    selected.hotel = parsed.hotel || 0;
+    selected.food = parsed.food || 0;
+    selected.other = parsed.other || 0;
+  }
 }
 
+async function loadSavedSelectionsFromBackend(trip) {
+  try {
+    if (!trip) return;
+
+    selected.transport = trip.selectedTransport || selected.transport || {};
+    selected.hotel = trip.selectedHotel || 0;
+    selected.food = trip.selectedFood || 0;
+    selected.other = trip.selectedOther || 0;
+
+    totalDays = trip.totalDays || totalDays || 1;
+    totalPersons = trip.totalPersons || totalPersons || 1;
+
+    document.getElementById("daysInput").value = totalDays;
+    document.getElementById("personsInput").value = totalPersons;
+  } catch (error) {
+    console.error("Error loading backend selections:", error);
+  }
 }
 
-/* UPDATE TOTAL */
+function updateTotal() {
+  const transportTotal = Object.values(selected.transport).reduce((a, b) => a + b, 0);
+  const grand = transportTotal + selected.hotel + selected.food + selected.other;
 
-function updateTotal(){
+  document.getElementById("grandTotal").innerText = `₹${grand}`;
 
-const transportTotal = Object.values(selected.transport).reduce((a,b)=>a+b,0);
-
-const grand = transportTotal + selected.hotel + selected.food + selected.other;
-
-document.getElementById("grandTotal").innerText=`₹${grand}`;
-
-/* SAVE FOR TRACKER PAGE */
-localStorage.setItem("tripBudget_"+tripId, grand);
-
-/* SAVE SELECTIONS */
-localStorage.setItem("tripSelections_"+tripId, JSON.stringify(selected));
-
+  localStorage.setItem("tripBudget_" + tripId, grand);
+  localStorage.setItem("tripSelections_" + tripId, JSON.stringify(selected));
 }
 
-/* LOAD DATA */
+async function saveSelectionsToBackend() {
+  try {
+    const res = await fetch(`http://localhost:5000/api/trips/${tripId}/selections`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: "Bearer " + token
+      },
+      body: JSON.stringify({
+        selectedTransport: selected.transport,
+        selectedHotel: selected.hotel,
+        selectedFood: selected.food,
+        selectedOther: selected.other,
+        totalDays: totalDays,
+        totalPersons: totalPersons
+      })
+    });
 
-async function loadTripDetails(){
+    const data = await res.json();
 
-const tripRes=await fetch(`http://localhost:5000/api/trips/${tripId}`,{
-headers:{Authorization:"Bearer "+token}
+    if (data.success) {
+      alert("Trip details saved successfully ✅");
+    } else {
+      alert(data.message || "Failed to save trip details ❌");
+    }
+  } catch (error) {
+    console.error("Save error:", error);
+    alert("Server error while saving trip details ❌");
+  }
+}
+
+async function loadTripDetails() {
+  try {
+    const tripRes = await fetch(`http://localhost:5000/api/trips/${tripId}`, {
+      headers: { Authorization: "Bearer " + token }
+    });
+
+    const tripData = await tripRes.json();
+
+    if (!tripData.success || !tripData.trip) {
+      alert("Trip not found");
+      return;
+    }
+
+    document.getElementById("tripName").innerText = tripData.trip.tripName;
+    document.getElementById("route").innerText = `${tripData.trip.source} → ${tripData.trip.destination}`;
+
+    await loadSavedSelectionsFromBackend(tripData.trip);
+
+    const detailsRes = await fetch(`http://localhost:5000/api/trip-details/${tripId}`, {
+      headers: { Authorization: "Bearer " + token }
+    });
+
+    const details = await detailsRes.json();
+
+    if (!details.success) {
+      alert(details.message || "Failed to load trip details");
+      return;
+    }
+
+    totalDays = details.totalDays || totalDays || 1;
+    document.getElementById("daysInput").value = totalDays;
+    document.getElementById("personsInput").value = totalPersons;
+
+    currentTransportData = details.transport || { onward: [], return: [] };
+    currentHotelData = details.hotels || [];
+    currentFoodData = details.food || { success: false, restaurants: [], perDayEstimate: 0 };
+    currentOtherCostData = details.otherCosts || { total: 0 };
+
+    showTransport(currentTransportData);
+    showHotels(currentHotelData);
+    showFood(currentFoodData);
+    showOtherCosts(currentOtherCostData);
+
+    updateTotal();
+  } catch (error) {
+    console.error("Load trip details error:", error);
+    alert("Something went wrong while loading trip details ❌");
+  }
+}
+
+document.getElementById("daysInput").addEventListener("change", function () {
+  totalDays = parseInt(this.value) || 1;
+  if (totalDays < 1) totalDays = 1;
+  this.value = totalDays;
+
+  selected.hotel = 0;
+  selected.food = 0;
+
+  showHotels(currentHotelData);
+  showFood(currentFoodData);
+  updateTotal();
 });
 
-const tripData=await tripRes.json();
+document.getElementById("personsInput").addEventListener("change", function () {
+  totalPersons = parseInt(this.value) || 1;
+  if (totalPersons < 1) totalPersons = 1;
+  this.value = totalPersons;
 
-document.getElementById("tripName").innerText=tripData.trip.tripName;
+  selected.transport = {};
+  selected.food = 0;
 
-document.getElementById("route").innerText=
-`${tripData.trip.source} → ${tripData.trip.destination}`;
-
-const detailsRes=await fetch(`http://localhost:5000/api/trip-details/${tripId}`,{
-headers:{Authorization:"Bearer "+token}
+  showTransport(currentTransportData);
+  showFood(currentFoodData);
+  updateTotal();
 });
 
-const details=await detailsRes.json();
+function buildTransportLabel(opt) {
+  let label = opt.providerName || "Transport";
 
-totalDays=details.totalDays||1;
+  if (opt.vehicleNo) {
+    label += ` (${opt.vehicleNo})`;
+  }
 
-document.getElementById("daysInput").value=totalDays;
+  if (opt.classType) {
+    label += ` - ${opt.classType}`;
+  }
 
-showTransport(details.transport);
-showHotels(details.hotels);
-showFood(details.food);
-showOtherCosts(details.otherCosts);
+  if (opt.distance) {
+    label += ` | ${opt.distance}`;
+  }
 
-updateTotal();
-
+  return label;
 }
 
-/* INPUTS */
+function showTransport(transport) {
+  const div = document.getElementById("transportList");
+  div.innerHTML = "";
 
-document.getElementById("daysInput").addEventListener("change",function(){
-totalDays=parseInt(this.value)||1;
-selected.hotel=0;
-selected.food=0;
-updateTotal();
-});
+  let legIndex = 0;
+  let hasAnyTransport = false;
 
-document.getElementById("personsInput").addEventListener("change",function(){
-totalPersons=parseInt(this.value)||1;
-selected.transport={};
-selected.food=0;
-updateTotal();
-});
+  for (const journey in transport) {
+    const journeySegments = transport[journey];
 
-/* TRANSPORT */
+    if (!journeySegments || journeySegments.length === 0) continue;
 
-function showTransport(transport){
+    hasAnyTransport = true;
+    div.innerHTML += `<h4 class="journey-title">${journey.toUpperCase()}</h4>`;
 
-const div=document.getElementById("transportList");
+    journeySegments.forEach(segment => {
+      const legKey = `leg_${legIndex}`;
 
-div.innerHTML="";
+      div.innerHTML += `<p class="leg-title">${segment.leg}</p>`;
 
-let legIndex=0;
+      const modes = segment.options || {};
+      let hasModeOptions = false;
 
-for(let journey in transport){
+      for (const mode in modes) {
+        const optionsArray = modes[mode] || [];
 
-div.innerHTML+=`<h4>${journey.toUpperCase()}</h4>`;
+        optionsArray.forEach(opt => {
+          hasModeOptions = true;
 
-transport[journey].forEach(segment=>{
+          const finalPrice = (opt.price || 0) * totalPersons;
+          const checked = selected.transport[legKey] === finalPrice ? "checked" : "";
+          const label = buildTransportLabel(opt);
 
-const legKey=`leg_${legIndex}`;
+          div.innerHTML += `
+            <div class="selection-box">
+              <label>
+                <input
+                  type="radio"
+                  name="${legKey}"
+                  ${checked}
+                  onchange="selectTransport('${legKey}', ${opt.price || 0})"
+                >
+                <strong>${mode.toUpperCase()}</strong> – ${label}<br>
+                <span class="small-text">₹${opt.price || 0} per person | Total: ₹${finalPrice}</span>
+              </label>
+            </div>
+          `;
+        });
+      }
 
-div.innerHTML+=`<p><b>${segment.leg}</b></p>`;
+      if (!hasModeOptions) {
+        div.innerHTML += `<p class="small-text">No options for this leg.</p>`;
+      }
 
-for(let mode in segment.options){
+      legIndex++;
+    });
+  }
 
-segment.options[mode].forEach(opt=>{
-
-let label=mode==="train"
-?`${opt.trainNo} (${opt.class})`
-:mode==="flight"
-?opt.flightNo
-:opt.operator;
-
-const checked = selected.transport[legKey] == opt.price*totalPersons ? "checked" : "";
-
-div.innerHTML+=`
-
-<div class="selection-box">
-
-<label>
-
-<input type="radio" name="${legKey}"
-${checked}
-onchange="selectTransport('${legKey}',${opt.price})">
-
-${mode.toUpperCase()} – ${label} – ₹${opt.price}
-
-</label>
-
-</div>
-
-`;
-
-});
-
+  if (!hasAnyTransport) {
+    div.innerHTML = "<p>No transport options available.</p>";
+  }
 }
 
-legIndex++;
-
-});
-
+function selectTransport(legKey, price) {
+  selected.transport[legKey] = price * totalPersons;
+  updateTotal();
 }
 
+function showHotels(hotels) {
+  const div = document.getElementById("hotelList");
+  div.innerHTML = "";
+
+  if (!hotels || hotels.length === 0) {
+    div.innerHTML = "<p>No hotel options available.</p>";
+    return;
+  }
+
+  hotels.forEach(h => {
+    const finalHotelCost = (h.pricePerNight || 0) * totalDays;
+    const checked = selected.hotel === finalHotelCost ? "checked" : "";
+
+    div.innerHTML += `
+      <div class="selection-box">
+        <label>
+          <input
+            type="radio"
+            name="hotel"
+            ${checked}
+            onchange="selectHotel(${h.pricePerNight || 0})"
+          >
+          <strong>${h.name}</strong><br>
+          Type: ${h.type || "N/A"} | Room: ${h.roomType || "N/A"} | ⭐ ${h.rating || 0}<br>
+          ₹${h.pricePerNight || 0}/night | Total: ₹${finalHotelCost}
+        </label>
+      </div>
+    `;
+  });
 }
 
-function selectTransport(legKey,price){
-
-selected.transport[legKey]=price*totalPersons;
-
-updateTotal();
-
+function selectHotel(price) {
+  selected.hotel = price * totalDays;
+  updateTotal();
 }
 
-/* HOTELS */
+function showFood(food) {
+  const div = document.getElementById("foodList");
+  div.innerHTML = "";
 
-function showHotels(hotels){
+  if (!food || !food.success || !food.restaurants || food.restaurants.length === 0) {
+    div.innerHTML = "<p>No food options.</p>";
+    return;
+  }
 
-const div=document.getElementById("hotelList");
+  div.innerHTML += `<p>Estimated Budget ₹${food.perDayEstimate || 0}/day per person</p>`;
 
-div.innerHTML="";
+  food.restaurants.forEach(r => {
+    const finalFoodCost = (r.price || 0) * totalDays * totalPersons;
+    const checked = selected.food === finalFoodCost ? "checked" : "";
 
-hotels.forEach(h=>{
-
-const checked = selected.hotel == h.pricePerNight*totalDays ? "checked" : "";
-
-div.innerHTML+=`
-
-<div class="selection-box">
-
-<label>
-
-<input type="radio" name="hotel"
-${checked}
-onchange="selectHotel(${h.pricePerNight})">
-
-<strong>${h.name}</strong><br>
-
-Type: ${h.type} | ⭐ ${h.rating}<br>
-
-₹${h.pricePerNight}/night
-
-</label>
-
-</div>
-
-`;
-
-});
-
+    div.innerHTML += `
+      <div class="selection-box">
+        <label>
+          <input
+            type="radio"
+            name="food"
+            ${checked}
+            onchange="selectFood(${r.price || 0})"
+          >
+          ${r.name} – ${r.mealType} – ₹${r.price || 0} per person<br>
+          <span class="small-text">Total: ₹${finalFoodCost}</span>
+        </label>
+      </div>
+    `;
+  });
 }
 
-function selectHotel(price){
-
-selected.hotel=price*totalDays;
-
-updateTotal();
-
+function selectFood(price) {
+  selected.food = price * totalDays * totalPersons;
+  updateTotal();
 }
 
-/* FOOD */
+function showOtherCosts(c) {
+  const total = c && c.total ? c.total : 0;
+  const checked = selected.other === total ? "checked" : "";
 
-function showFood(food){
-
-const div=document.getElementById("foodList");
-
-div.innerHTML="";
-
-if(!food||!food.success){
-
-div.innerHTML="<p>No food options.</p>";
-
-return;
-
+  document.getElementById("otherCostList").innerHTML = `
+    <div class="selection-box">
+      <label>
+        <input
+          type="radio"
+          name="other"
+          ${checked}
+          onchange="selectOther(${total})"
+        >
+        Guide + Local Travel + Entry Fees – ₹${total}
+      </label>
+    </div>
+  `;
 }
 
-div.innerHTML+=`<p>Estimated Budget ₹${food.perDayEstimate}/day</p>`;
-
-food.restaurants.forEach(r=>{
-
-const checked = selected.food == r.price*totalDays*totalPersons ? "checked" : "";
-
-div.innerHTML+=`
-
-<div class="selection-box">
-
-<label>
-
-<input type="radio" name="food"
-${checked}
-onchange="selectFood(${r.price})">
-
-${r.name} – ${r.mealType} – ₹${r.price}
-
-</label>
-
-</div>
-
-`;
-
-});
-
+function selectOther(cost) {
+  selected.other = cost;
+  updateTotal();
 }
 
-function selectFood(price){
+document.getElementById("saveSelectionsBtn").addEventListener("click", saveSelectionsToBackend);
 
-selected.food=price*totalDays*totalPersons;
-
-updateTotal();
-
-}
-
-/* OTHER */
-
-function showOtherCosts(c){
-
-const checked = selected.other == c.total ? "checked" : "";
-
-document.getElementById("otherCostList").innerHTML=`
-
-<div class="selection-box">
-
-<label>
-
-<input type="radio" name="other"
-${checked}
-onchange="selectOther(${c.total})">
-
-Guide + Local Travel + Entry Fees – ₹${c.total}
-
-</label>
-
-</div>
-
-`;
-
-}
-
-function selectOther(cost){
-
-selected.other=cost;
-
-updateTotal();
-
-}
-
-/* START */
-
-loadSavedSelections();
+loadSavedSelectionsFromLocal();
 loadTripDetails();
-
 </script>
 
 </body>

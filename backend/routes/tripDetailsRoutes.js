@@ -17,7 +17,10 @@ router.get("/:tripId", authmiddleware, async (req, res) => {
     });
 
     if (!trip) {
-      return res.status(404).json({ success: false });
+      return res.status(404).json({
+        success: false,
+        message: "Trip not found"
+      });
     }
 
     const days =
@@ -26,22 +29,31 @@ router.get("/:tripId", authmiddleware, async (req, res) => {
             1,
             Math.ceil(
               (new Date(trip.endDate) - new Date(trip.startDate)) /
-                (1000 * 60 * 60 * 24)
+              (1000 * 60 * 60 * 24)
             )
           )
         : 1;
+
+    const transport = await getTransportOptions(trip.source, trip.destination);
+    const hotels = await getHotelOptions(trip.destination, days);
+    const food = await getFoodOptions(trip.destination, days);
+    const otherCosts = await getOtherCosts(trip.destination);
 
     res.json({
       success: true,
       trip,
       totalDays: days,
-      transport: getTransportOptions(trip.source, trip.destination),
-      hotels: getHotelOptions(trip.destination, days),
-      food: getFoodOptions(trip.destination, days),
-      otherCosts: getOtherCosts(trip.destination)
+      transport,
+      hotels,
+      food,
+      otherCosts
     });
   } catch (err) {
-    res.status(500).json({ success: false });
+    console.error("Trip details error:", err);
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch trip details"
+    });
   }
 });
 
@@ -50,7 +62,7 @@ router.post("/:tripId/add-expense", authmiddleware, async (req, res) => {
   try {
     const { title, amount, category } = req.body;
 
-    if (!title || !amount) {
+    if (!title || !amount || Number(amount) <= 0) {
       return res.status(400).json({
         success: false,
         message: "Invalid expense data"
@@ -63,17 +75,19 @@ router.post("/:tripId/add-expense", authmiddleware, async (req, res) => {
     });
 
     if (!trip) {
-      return res.status(404).json({ success: false });
+      return res.status(404).json({
+        success: false,
+        message: "Trip not found"
+      });
     }
 
-    const expense = {
-      title,
+    trip.expenses.push({
+      title: title.trim(),
       amount: Number(amount),
       category: category || "Other"
-    };
+    });
 
-    trip.expenses.push(expense);
-    trip.spentAmount += Number(amount);
+    trip.spentAmount = trip.expenses.reduce((sum, exp) => sum + Number(exp.amount), 0);
 
     await trip.save();
 
@@ -82,9 +96,12 @@ router.post("/:tripId/add-expense", authmiddleware, async (req, res) => {
       expenses: trip.expenses,
       spentAmount: trip.spentAmount
     });
-
   } catch (err) {
-    res.status(500).json({ success: false });
+    console.error("Add expense error:", err);
+    res.status(500).json({
+      success: false,
+      message: "Failed to add expense"
+    });
   }
 });
 
@@ -97,7 +114,10 @@ router.get("/:tripId/expenses", authmiddleware, async (req, res) => {
     });
 
     if (!trip) {
-      return res.status(404).json({ success: false });
+      return res.status(404).json({
+        success: false,
+        message: "Trip not found"
+      });
     }
 
     res.json({
@@ -106,9 +126,104 @@ router.get("/:tripId/expenses", authmiddleware, async (req, res) => {
       spentAmount: trip.spentAmount,
       estimatedBudget: trip.estimatedBudget
     });
-
   } catch (err) {
-    res.status(500).json({ success: false });
+    console.error("Get expenses error:", err);
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch expenses"
+    });
+  }
+});
+
+/* ================= UPDATE EXPENSE ================= */
+router.put("/:tripId/expense/:expenseId", authmiddleware, async (req, res) => {
+  try {
+    const { title, amount, category } = req.body;
+
+    const trip = await Trip.findOne({
+      _id: req.params.tripId,
+      userId: req.user.id
+    });
+
+    if (!trip) {
+      return res.status(404).json({
+        success: false,
+        message: "Trip not found"
+      });
+    }
+
+    const expense = trip.expenses.id(req.params.expenseId);
+
+    if (!expense) {
+      return res.status(404).json({
+        success: false,
+        message: "Expense not found"
+      });
+    }
+
+    if (title) expense.title = title.trim();
+    if (amount !== undefined && Number(amount) > 0) expense.amount = Number(amount);
+    if (category) expense.category = category;
+
+    trip.spentAmount = trip.expenses.reduce((sum, exp) => sum + Number(exp.amount), 0);
+
+    await trip.save();
+
+    res.json({
+      success: true,
+      expenses: trip.expenses,
+      spentAmount: trip.spentAmount
+    });
+  } catch (err) {
+    console.error("Update expense error:", err);
+    res.status(500).json({
+      success: false,
+      message: "Failed to update expense"
+    });
+  }
+});
+
+/* ================= DELETE EXPENSE ================= */
+router.delete("/:tripId/expense/:expenseId", authmiddleware, async (req, res) => {
+  try {
+    const trip = await Trip.findOne({
+      _id: req.params.tripId,
+      userId: req.user.id
+    });
+
+    if (!trip) {
+      return res.status(404).json({
+        success: false,
+        message: "Trip not found"
+      });
+    }
+
+    const expense = trip.expenses.id(req.params.expenseId);
+
+    if (!expense) {
+      return res.status(404).json({
+        success: false,
+        message: "Expense not found"
+      });
+    }
+
+    expense.deleteOne();
+
+    trip.spentAmount = trip.expenses.reduce((sum, exp) => sum + Number(exp.amount), 0);
+
+    await trip.save();
+
+    res.json({
+      success: true,
+      expenses: trip.expenses,
+      spentAmount: trip.spentAmount
+    });
+  } catch (err) {
+    console.error("Delete expense error:", err);
+    res.status(500).json({
+      success: false,
+      message: "Failed to delete expense"
+    });
   }
 });
 

@@ -6,11 +6,6 @@ const authMiddleware = require("../middleware/authmiddleware.js");
 
 const router = express.Router();
 
-/* ================= TEST ROUTE ================= */
-router.get("/test", (req, res) => {
-  res.send("Auth route working ✅");
-});
-
 /* ================= SIGNUP ================= */
 router.post("/signup", async (req, res) => {
   try {
@@ -33,14 +28,23 @@ router.post("/signup", async (req, res) => {
       password: hashedPassword,
     });
 
+    // ✅ TOKEN ADDED HERE
+    const token = jwt.sign(
+      { id: newUser._id },
+      process.env.JWT_SECRET,
+      { expiresIn: "1d" }
+    );
+
     res.status(201).json({
       message: "User registered successfully ✅",
+      token,
       user: {
         id: newUser._id,
         name: newUser.name,
         email: newUser.email,
       },
     });
+
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -65,10 +69,6 @@ router.post("/login", async (req, res) => {
       return res.status(400).json({ message: "Invalid credentials" });
     }
 
-    if (!process.env.JWT_SECRET) {
-      return res.status(500).json({ message: "JWT secret not set" });
-    }
-
     const token = jwt.sign(
       { id: user._id },
       process.env.JWT_SECRET,
@@ -84,12 +84,13 @@ router.post("/login", async (req, res) => {
         email: user.email,
       },
     });
+
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 });
 
-/* ================= PROTECTED PROFILE ================= */
+/* ================= PROFILE ================= */
 router.get("/profile", authMiddleware, async (req, res) => {
   try {
     const user = await User.findById(req.user.id).select("-password");

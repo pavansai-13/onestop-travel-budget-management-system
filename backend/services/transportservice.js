@@ -1,105 +1,111 @@
-const transportDB = {
-  "Vizag-Delhi": {
-    train: [
-      { trainNo: "AP Express", class: "Sleeper", price: 900 },
-      { trainNo: "AP Express", class: "3A", price: 2200 }
-    ],
-    flight: [
-      { flightNo: "Indigo 6E-234", price: 6500 },
-      { flightNo: "Air India AI-887", price: 7200 }
-    ]
-  },
+const Transport = require("../models/transport");
+const RoutePlan = require("../models/routeplan");
 
-  "Delhi-Manali": {
-    bus: [
-      { operator: "HRTC Volvo", price: 700 },
-      { operator: "Private AC Bus", price: 1500 }
-    ]
-  },
+function groupByMode(records = []) {
+  const grouped = {};
 
-  "Vizag-Madgaon": {
-    train: [
-      { trainNo: "Konark Express", class: "Sleeper", price: 600 },
-      { trainNo: "Konark Express", class: "3A", price: 1600 }
-    ],
-    flight: [
-      { flightNo: "Indigo 6E-712", price: 6000 }
-    ]
-  },
+  for (const item of records) {
+    if (!grouped[item.mode]) {
+      grouped[item.mode] = [];
+    }
 
-  "Madgaon-Goa": {
-    bus: [
-      { operator: "Local Bus", price: 80, distance: "30 km" }
-    ]
-  },
-
-  "Goa-Airport-Goa": {
-    bus: [
-      { operator: "Airport Bus", price: 150, distance: "50 km" }
-    ]
+    grouped[item.mode].push({
+      providerName: item.providerName,
+      vehicleNo: item.vehicleNo,
+      classType: item.classType,
+      price: item.price,
+      distance: item.distance
+    });
   }
-};
 
-/* 🔹 Helper: Normalize user input */
-function normalize(text) {
-  return text ? text.trim().toLowerCase() : "";
+  return grouped;
 }
 
-function getTransportOptions(source, destination) {
-  source = source.toLowerCase();
-  destination = destination.toLowerCase();
+function hasOptions(groupedOptions = {}) {
+  return Object.keys(groupedOptions).some(
+    (mode) => Array.isArray(groupedOptions[mode]) && groupedOptions[mode].length > 0
+  );
+}
 
-  let result = { onward: [], return: [] };
+async function buildLegs(legs = []) {
+  const result = [];
+  const sortedLegs = [...legs].sort((a, b) => a.order - b.order);
 
-  if (source === "vizag" && destination === "manali") {
-    result.onward = [
-      {
-        leg: "Vizag → Delhi",
-        options: transportDB["Vizag-Delhi"]
-      },
-      {
-        leg: "Delhi → Manali",
-        options: transportDB["Delhi-Manali"]
-      }
-    ];
+  for (const leg of sortedLegs) {
+    const options = await Transport.find({
+      source: new RegExp(`^${leg.from.trim()}$`, "i"),
+      destination: new RegExp(`^${leg.to.trim()}$`, "i")
+    }).lean();
 
-    result.return = [
-      {
-        leg: "Manali → Delhi",
-        options: transportDB["Delhi-Manali"]
-      },
-      {
-        leg: "Delhi → Vizag",
-        options: transportDB["Vizag-Delhi"]
-      }
-    ];
-  }
+    const groupedOptions = groupByMode(options);
 
-  else if (source === "vizag" && destination === "goa") {
-    result.onward = [
-      {
-        leg: "Vizag → Madgaon",
-        options: transportDB["Vizag-Madgaon"]
-      },
-      {
-        leg: "Madgaon → Goa",
-        options: transportDB["Madgaon-Goa"]
-      }
-    ];
-
-    result.return = [
-      {
-        leg: "Goa → Madgaon",
-        options: transportDB["Madgaon-Goa"]
-      },
-      {
-        leg: "Madgaon → Vizag",
-        options: transportDB["Vizag-Madgaon"]
-      }
-    ];
+    if (hasOptions(groupedOptions)) {
+      result.push({
+        leg: `${leg.from} → ${leg.to}`,
+        options: groupedOptions
+      });
+    }
   }
 
   return result;
 }
 
-module.exports = { getTransportOptions, transportDB };
+async function getTransportOptions(source, destination) {
+  try {
+    if (!source || !destination) {
+      return { onward: [], return: [] };
+    }
+
+    const cleanSource = source.trim();
+    const cleanDestination = destination.trim();
+
+    const routePlan = await RoutePlan.findOne({
+      source: new RegExp(`^${cleanSource}$`, "i"),
+      destination: new RegExp(`^${cleanDestination}$`, "i")
+    }).lean();
+
+    if (routePlan) {
+      const onward = await buildLegs(routePlan.onwardLegs || []);
+      const returnTrip = await buildLegs(routePlan.returnLegs || []);
+
+      return {
+        onward,
+        return: returnTrip
+      };
+    }
+
+    const directOnward = await Transport.find({
+      source: new RegExp(`^${cleanSource}$`, "i"),
+      destination: new RegExp(`^${cleanDestination}$`, "i")
+    }).lean();
+
+    const directReturn = await Transport.find({
+      source: new RegExp(`^${cleanDestination}$`, "i"),
+      destination: new RegExp(`^${cleanSource}$`, "i")
+    }).lean();
+
+    return {
+      onward: directOnward.length
+        ? [
+            {
+              leg: `${cleanSource} → ${cleanDestination}`,
+              options: groupByMode(directOnward)
+            }
+          ]
+        : [],
+      return: directReturn.length
+        ? [
+            {
+              leg: `${cleanDestination} → ${cleanSource}`,
+              options: groupByMode(directReturn)
+            }
+          ]
+        : []
+    };
+  } catch (error) {
+    console.error("Transport service error:", error);
+    return { onward: [], return: [] };
+  }
+}
+
+module.exports = { getTransportOptions };
